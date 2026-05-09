@@ -137,3 +137,124 @@ describe('virtualizer — setRenderRow', () => {
     expect(rows.innerHTML).toContain('<span>entry-4</span>');
   });
 });
+
+describe('virtualizer — variable expanded heights via measureExpandedRow', () => {
+  it('uses measured height instead of the static expandedHeight when row is expanded', () => {
+    document.body.innerHTML = '';
+    const { viewport, spacer, rows } = makeHarness();
+    const measured = new Map([[0, 200], [1, 50]]);
+    const virt = createVirtualizer({
+      viewport, spacer, rows,
+      rowHeight: ROW_HEIGHT,
+      expandedHeight: EXPANDED_HEIGHT,
+      measureExpandedRow: (entry) => measured.get(entry.i),
+    });
+
+    virt.setEntries(makeEntries(2));
+    expect(spacer.style.height).toBe(`${2 * ROW_HEIGHT}px`);
+
+    rows.querySelector('.log-row[data-idx="0"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(spacer.style.height).toBe(`${200 + ROW_HEIGHT}px`);
+  });
+
+  it('cached measured height survives setEntries(next, {keepScroll: true})', () => {
+    document.body.innerHTML = '';
+    const { viewport, spacer, rows } = makeHarness();
+    let calls = 0;
+    const virt = createVirtualizer({
+      viewport, spacer, rows,
+      rowHeight: ROW_HEIGHT,
+      expandedHeight: EXPANDED_HEIGHT,
+      measureExpandedRow: (_entry) => { calls += 1; return 150; },
+    });
+
+    virt.setEntries(makeEntries(3));
+    rows.querySelector('.log-row[data-idx="0"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(calls).toBe(1);
+
+    virt.setEntries(makeEntries(3), { keepScroll: true });
+    expect(calls).toBe(1);
+    expect(spacer.style.height).toBe(`${150 + 2 * ROW_HEIGHT}px`);
+  });
+
+  it('falls back to expandedHeight when measureExpandedRow returns 0/NaN/negative', () => {
+    document.body.innerHTML = '';
+    const { viewport, spacer, rows } = makeHarness();
+    const virt = createVirtualizer({
+      viewport, spacer, rows,
+      rowHeight: ROW_HEIGHT,
+      expandedHeight: EXPANDED_HEIGHT,
+      measureExpandedRow: () => 0,
+    });
+
+    virt.setEntries(makeEntries(2));
+    rows.querySelector('.log-row[data-idx="0"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    // Fallback path: expandedHeight (96) for entry 0, rowHeight (24) for entry 1 → 120
+    expect(spacer.style.height).toBe(`${EXPANDED_HEIGHT + ROW_HEIGHT}px`);
+  });
+});
+
+describe('virtualizer — setEntries scroll behavior', () => {
+  it('default setEntries(next) resets scrollTop to 0', () => {
+    document.body.innerHTML = '';
+    const { viewport, spacer, rows } = makeHarness();
+    const virt = createVirtualizer({
+      viewport, spacer, rows,
+      rowHeight: ROW_HEIGHT,
+      expandedHeight: EXPANDED_HEIGHT,
+    });
+
+    virt.setEntries(makeEntries(100));
+    viewport.scrollTop = 500;
+    virt.setEntries(makeEntries(100));
+    expect(viewport.scrollTop).toBe(0);
+  });
+
+  it('setEntries(next, {keepScroll: true}) preserves scrollTop', () => {
+    document.body.innerHTML = '';
+    const { viewport, spacer, rows } = makeHarness();
+    const virt = createVirtualizer({
+      viewport, spacer, rows,
+      rowHeight: ROW_HEIGHT,
+      expandedHeight: EXPANDED_HEIGHT,
+    });
+
+    virt.setEntries(makeEntries(100));
+    viewport.scrollTop = 500;
+    virt.setEntries(makeEntries(100), { keepScroll: true });
+    expect(viewport.scrollTop).toBe(500);
+  });
+
+  it('setEntries(next, {keepScroll: true}) preserves expanded set', () => {
+    document.body.innerHTML = '';
+    const { viewport, spacer, rows } = makeHarness();
+    const virt = createVirtualizer({
+      viewport, spacer, rows,
+      rowHeight: ROW_HEIGHT,
+      expandedHeight: EXPANDED_HEIGHT,
+    });
+
+    virt.setEntries(makeEntries(5));
+    rows.querySelector('.log-row[data-idx="0"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const heightBefore = spacer.style.height;
+
+    virt.setEntries(makeEntries(5), { keepScroll: true });
+    expect(spacer.style.height).toBe(heightBefore);
+  });
+
+  it('default setEntries(next) clears expanded set', () => {
+    document.body.innerHTML = '';
+    const { viewport, spacer, rows } = makeHarness();
+    const virt = createVirtualizer({
+      viewport, spacer, rows,
+      rowHeight: ROW_HEIGHT,
+      expandedHeight: EXPANDED_HEIGHT,
+    });
+
+    virt.setEntries(makeEntries(5));
+    rows.querySelector('.log-row[data-idx="0"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    virt.setEntries(makeEntries(5));
+    expect(spacer.style.height).toBe(`${5 * ROW_HEIGHT}px`);
+  });
+});

@@ -1,16 +1,31 @@
-// Fixed-row-height windowing. Caller supplies a renderRow(entry, isExpanded) -> string of HTML.
-// Per-row expansion state lets a row use the expanded height instead of compact.
-
-export function createVirtualizer({ viewport, spacer, rows, rowHeight, expandedHeight, overscan = 6 }) {
+export function createVirtualizer({
+  viewport, spacer, rows,
+  rowHeight, expandedHeight,
+  overscan = 6,
+  measureExpandedRow = null,
+}) {
   let entries = [];
   const expanded = new Set();
+  // Keyed by entry.i (stable source-file line index). Never evicted: a given
+  // log line's expanded height is stable, so it survives setEntries() across refetches.
+  const heightCache = new Map();
   let globalExpanded = false;
 
   let renderRow = () => '';
   let onRowToggle = () => {};
 
   function rowH(entry) {
-    return globalExpanded || expanded.has(entry.i) ? expandedHeight : rowHeight;
+    if (!(globalExpanded || expanded.has(entry.i))) return rowHeight;
+    const cached = heightCache.get(entry.i);
+    if (cached != null) return cached;
+    if (measureExpandedRow) {
+      const h = Math.ceil(measureExpandedRow(entry));
+      if (Number.isFinite(h) && h > 0) {
+        heightCache.set(entry.i, h);
+        return h;
+      }
+    }
+    return expandedHeight;
   }
 
   let offsets = [0];
@@ -43,14 +58,14 @@ export function createVirtualizer({ viewport, spacer, rows, rowHeight, expandedH
     const scrollTop = viewport.scrollTop;
     const viewportH = viewport.clientHeight;
     const start = Math.max(0, findFirstVisible(scrollTop) - overscan);
-    const end = Math.min(entries.length, findFirstVisible(scrollTop + viewportH) + overscan);
+    const end   = Math.min(entries.length, findFirstVisible(scrollTop + viewportH) + overscan);
 
     let html = '';
     for (let k = start; k < end; k++) {
       const top = offsets[k];
       const e = entries[k];
       const isExpanded = globalExpanded || expanded.has(e.i);
-      html += '<div class="log-row sev-' + e.severity.toLowerCase() + (isExpanded ? ' expanded' : '') + '" style="top:' + top + 'px;height:' + rowH(e) + 'px" data-idx="' + e.i + '">' + renderRow(e, isExpanded) + '</div>';
+      html += '<div class="log-row sev-' + e.severity.toLowerCase() + (isExpanded ? ' expanded' : '') + '" tabindex="0" style="top:' + top + 'px;height:' + rowH(e) + 'px" data-idx="' + e.i + '">' + renderRow(e, isExpanded) + '</div>';
     }
     rows.innerHTML = html;
   }
@@ -62,21 +77,35 @@ export function createVirtualizer({ viewport, spacer, rows, rowHeight, expandedH
   }
 
   viewport.addEventListener('scroll', render, { passive: true });
-  rows.addEventListener('click', (ev) => {
-    const row = ev.target.closest('.log-row');
-    if (!row) return;
+  function toggleRowAt(row) {
     const idx = Number(row.dataset.idx);
     if (expanded.has(idx)) expanded.delete(idx);
     else expanded.add(idx);
     onRowToggle(idx);
     recompute();
+  }
+
+  rows.addEventListener('click', (ev) => {
+    const row = ev.target.closest('.log-row');
+    if (!row) return;
+    toggleRowAt(row);
+  });
+
+  rows.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    const row = ev.target.closest('.log-row');
+    if (!row) return;
+    ev.preventDefault();
+    toggleRowAt(row);
   });
 
   return {
-    setEntries(next) {
+    setEntries(next, { keepScroll = false } = {}) {
       entries = next;
-      expanded.clear();
-      viewport.scrollTop = 0;
+      if (!keepScroll) {
+        expanded.clear();
+        viewport.scrollTop = 0;
+      }
       recompute();
     },
     setRenderRow(fn) { renderRow = fn; recompute(); },

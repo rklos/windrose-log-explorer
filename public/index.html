@@ -19,35 +19,41 @@
           <span class="compass" aria-hidden="true">✦</span>
           <h1>WINDROSE <em>LOG EXPLORER</em></h1>
         </div>
-        <div class="file-meta" id="file-meta"></div>
+        <div class="head-stats" id="head-stats" aria-live="polite"></div>
+        <div class="head-actions">
+          <button type="button" class="trigger" id="severity-trigger" aria-haspopup="true" aria-expanded="false">
+            <span class="trigger-label" id="severity-trigger-label">Severity</span>
+            <span class="caret" aria-hidden="true">▾</span>
+          </button>
+          <button type="button" class="trigger" id="time-trigger" aria-haspopup="true" aria-expanded="false">
+            <span class="trigger-icon" aria-hidden="true">🕒</span>
+            <span class="trigger-label" id="time-trigger-label">Last 30 minutes</span>
+            <span class="caret" aria-hidden="true">▾</span>
+          </button>
+          <button type="button" class="icon-btn" id="reload-btn" title="Reload">↻</button>
+          <button type="button" class="toggle-pill" id="auto-refresh-toggle" aria-pressed="true" title="Auto-refresh every 5 seconds">
+            <span class="toggle-label">Auto · 5s</span>
+            <span class="toggle-dot" aria-hidden="true"></span>
+          </button>
+        </div>
       </header>
 
-      <section class="stats" id="stats" aria-live="polite"></section>
+      <section class="filter-strip">
+        <label class="search-field">
+          <span class="field-label sr-only">Search</span>
+          <input type="search" id="search-input" placeholder="Search messages..." autocomplete="off" />
+        </label>
+        <label class="check">
+          <input type="checkbox" id="full-toggle" />
+          <span class="check-box" aria-hidden="true"></span>
+          <span class="check-label">Show full lines</span>
+        </label>
+      </section>
 
-      <section class="toolbar">
-        <div class="toolbar-row">
-          <label class="field">
-            <span class="field-label">FROM</span>
-            <input type="datetime-local" id="from-input" step="1" />
-          </label>
-          <label class="field">
-            <span class="field-label">TO</span>
-            <input type="datetime-local" id="to-input" step="1" />
-          </label>
-          <button type="button" class="btn-pill" id="reload-btn">Reload</button>
-        </div>
-        <div class="toolbar-row">
-          <div class="chips" id="severity-chips" role="group" aria-label="Severity filter"></div>
-          <label class="search-field">
-            <span class="field-label sr-only">Search</span>
-            <input type="search" id="search-input" placeholder="Search messages..." autocomplete="off" />
-          </label>
-          <label class="check">
-            <input type="checkbox" id="full-toggle" />
-            <span class="check-box" aria-hidden="true"></span>
-            <span class="check-label">Show full lines</span>
-          </label>
-        </div>
+      <section class="histogram-pane" id="histogram-pane">
+        <svg class="histogram-svg" id="histogram-svg" preserveAspectRatio="none" aria-label="Log volume histogram"></svg>
+        <div class="histogram-empty" id="histogram-empty" hidden></div>
+        <div class="histogram-tooltip" id="histogram-tooltip" hidden></div>
       </section>
 
       <section class="log-pane" id="log-pane">
@@ -58,6 +64,36 @@
         </div>
       </section>
     </main>
+
+    <!-- Time-range popover -->
+    <div class="popover" id="time-popover" hidden role="dialog" aria-label="Time range">
+      <div class="popover-grid">
+        <div class="popover-col popover-absolute">
+          <h2>Absolute time range</h2>
+          <label class="abs-field"><span>From</span><input type="datetime-local" id="abs-from" step="1" /></label>
+          <label class="abs-field"><span>To</span><input type="datetime-local" id="abs-to" step="1" /></label>
+          <button type="button" class="btn-pill" id="abs-apply">Apply time range</button>
+          <p class="abs-hint">File covers <span id="abs-file-min">—</span> → <span id="abs-file-max">—</span></p>
+        </div>
+        <div class="popover-col popover-presets">
+          <h2>Quick ranges</h2>
+          <ul id="preset-list" role="listbox"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Severity multiselect popover -->
+    <div class="popover popover-severity" id="severity-popover" hidden role="dialog" aria-label="Severity filter">
+      <ul id="severity-list" role="group"></ul>
+      <div class="popover-actions">
+        <button type="button" class="popover-btn" id="sev-all">All</button>
+        <button type="button" class="popover-btn" id="sev-none">None</button>
+        <button type="button" class="popover-btn" id="sev-reset">Reset</button>
+      </div>
+    </div>
+
+    <!-- Hidden measurement div for variable expanded row heights -->
+    <div class="measure-host" id="measure-host" aria-hidden="true"></div>
 
     <script type="module" src="/app.js"></script>
   </body>
