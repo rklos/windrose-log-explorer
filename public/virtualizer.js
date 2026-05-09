@@ -9,13 +9,12 @@ export function createVirtualizer({
   // Keyed by entry.i (stable source-file line index). Never evicted: a given
   // log line's expanded height is stable, so it survives setEntries() across refetches.
   const heightCache = new Map();
-  let globalExpanded = false;
 
   let renderRow = () => '';
   let onRowToggle = () => {};
 
   function rowH(entry) {
-    if (!(globalExpanded || expanded.has(entry.i))) return rowHeight;
+    if (!expanded.has(entry.i)) return rowHeight;
     const cached = heightCache.get(entry.i);
     if (cached != null) return cached;
     if (measureExpandedRow) {
@@ -64,7 +63,7 @@ export function createVirtualizer({
     for (let k = start; k < end; k++) {
       const top = offsets[k];
       const e = entries[k];
-      const isExpanded = globalExpanded || expanded.has(e.i);
+      const isExpanded = expanded.has(e.i);
       html += '<div class="log-row sev-' + e.severity.toLowerCase() + (isExpanded ? ' expanded' : '') + '" tabindex="0" style="top:' + top + 'px;height:' + rowH(e) + 'px" data-idx="' + e.i + '">' + renderRow(e, isExpanded) + '</div>';
     }
     rows.innerHTML = html;
@@ -110,7 +109,6 @@ export function createVirtualizer({
     },
     setRenderRow(fn) { renderRow = fn; recompute(); },
     setOnRowToggle(fn) { onRowToggle = fn; },
-    setGlobalExpanded(flag) { globalExpanded = !!flag; recompute(); },
     rerender() { recompute(); },
   };
 }

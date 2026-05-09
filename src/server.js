@@ -41,7 +41,7 @@ const isMain =
 
 if (isMain) {
   const PORT = Number(process.env.PORT) || 3000;
-  const LOG_FILE = process.env.LOG_FILE;
+  const LOG_FILE = process.env.LOG_FILE || 'logs/logs.txt';
 
   if (!LOG_FILE) {
     console.error('LOG_FILE env var is required (path to a .log/.txt file).');

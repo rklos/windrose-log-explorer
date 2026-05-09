@@ -1,5 +1,5 @@
 import Fuse from '/vendor/fuse.esm.min.js';
-import { colorize, escapeHtml } from '/coloring.js';
+import { colorize, escapeHtml, highlight } from '/coloring.js';
 import { createVirtualizer } from '/virtualizer.js';
 import {
   PRESETS,
@@ -58,7 +58,6 @@ const els = {
   autoRefreshBtn:   $('auto-refresh-toggle'),
 
   searchInput:      $('search-input'),
-  fullToggle:       $('full-toggle'),
 
   histogramPane:    $('histogram-pane'),
   histogramSvg:     $('histogram-svg'),
@@ -78,12 +77,12 @@ const state = {
   entries: [],
   fuse: null,
   filtered: [],
+  queryMatches: null,
   selection: { kind: 'preset', key: DEFAULT_PRESET_KEY },
   resolvedFromMs: null,
   resolvedToMs: null,
   activeSev: new Set(['display', 'warning', 'error']),
   query: '',
-  full: false,
   autoRefreshOn: true,
   timePopoverOpen: false,
   severityPopoverOpen: false,
@@ -102,7 +101,6 @@ function readUrlState() {
     state.activeSev = new Set(params.get('sev').split(',').filter(Boolean));
   }
   if (params.get('q')) state.query = params.get('q');
-  if (params.get('full') === '1') state.full = true;
   if (params.get('refresh') === 'off') state.autoRefreshOn = false;
 }
 
@@ -111,7 +109,6 @@ function writeUrlState() {
   applySelectionToSearchParams(params, state.selection);
   params.set('sev', [...state.activeSev].join(','));
   if (state.query) params.set('q', state.query);
-  if (state.full)  params.set('full', '1');
   if (!state.autoRefreshOn) params.set('refresh', 'off');
   history.replaceState(null, '', `?${params.toString()}`);
 }
@@ -230,21 +227,21 @@ function renderRow(e, isExpanded) {
   const time = e.hasOwnTs ? new Date(e.ts).toISOString().slice(11, 23) : '';
   const badge = SEV_BADGE[e.severity] ?? 'DSP';
   const dotColor = `var(--sev-${e.severity.toLowerCase()}, var(--fg-secondary))`;
-  const cat = e.category ? `<span class="cat">${escapeHtml(e.category)}</span>` : '';
-  const msg = colorize(e.compactMessage);
-  let extra = '';
-  if (isExpanded) {
-    const metaParts = [];
-    if (e.frame !== null && e.frame !== undefined) metaParts.push(`frame ${escapeHtml(String(e.frame))}`);
-    if (e.sourcePath) metaParts.push(escapeHtml(e.sourcePath));
-    const meta = metaParts.length ? `<div class="meta">${metaParts.join(' · ')}</div>` : '';
-    extra = `<div class="extra">${meta}<div class="raw">${escapeHtml(e.fullText)}</div></div>`;
-  }
+  const matches = state.queryMatches?.get(e.i);
+  const catHl = matches?.category ?? null;
+  const msgHl = matches?.compactMessage ?? null;
+  const fullHl = matches?.fullText ?? null;
+  const cat = e.category ? `<span class="cat">${highlight(e.category, catHl)}</span>` : '';
+  const msg = colorize(e.compactMessage, msgHl);
+  const extra = isExpanded
+    ? `<div class="extra"><div class="raw">${highlight(e.fullText, fullHl)}</div></div>`
+    : '';
   return `
     <span class="chev" aria-hidden="true">›</span>
     <span class="ts">${time}</span>
     <span class="sev"><span class="dot" style="background:${dotColor}"></span>${badge}</span>
-    <div class="body">${cat}<span class="msg">${msg}</span>${extra}</div>
+    <div class="body">${cat}<span class="msg">${msg}</span></div>
+    ${extra}
   `;
 }
 
@@ -296,12 +293,25 @@ function applyFilters({ keepScroll = false } = {}) {
         keys: ['compactMessage', 'category', 'fullText'],
         threshold: 0.35,
         ignoreLocation: true,
+        includeMatches: true,
+        minMatchCharLength: 2,
       });
       state.fuse.__candidate = candidate;
     }
-    state.filtered = state.fuse.search(state.query).map((r) => r.item);
+    const results = state.fuse.search(state.query);
+    state.queryMatches = new Map();
+    state.filtered = results.map((r) => {
+      const byKey = {};
+      for (const m of r.matches ?? []) {
+        // Fuse indices are inclusive [start, end]; convert to [start, endExclusive).
+        byKey[m.key] = m.indices.map(([s, e]) => [s, e + 1]);
+      }
+      state.queryMatches.set(r.item.i, byKey);
+      return r.item;
+    });
   } else {
     state.fuse = null;
+    state.queryMatches = null;
     state.filtered = candidate;
   }
 
@@ -357,7 +367,6 @@ function renderTimeTrigger() {
 /* Bootstrap */
 
 readUrlState();
-els.fullToggle.checked = state.full;
 els.searchInput.value = state.query;
 els.autoRefreshBtn.setAttribute('aria-pressed', String(state.autoRefreshOn));
 renderTimeTrigger();
@@ -373,12 +382,6 @@ els.searchInput.addEventListener('input', () => {
     writeUrlState();
     applyFilters();
   }, 150);
-});
-
-els.fullToggle.addEventListener('change', () => {
-  state.full = els.fullToggle.checked;
-  virtualizer.setGlobalExpanded(state.full);
-  writeUrlState();
 });
 
 els.reloadBtn.addEventListener('click', () => {
@@ -519,8 +522,8 @@ function renderHistogram() {
   const totalCount = histogramBuckets.reduce((s, b) => s + b.total, 0);
   if (totalCount === 0) {
     els.histogramSvg.innerHTML = '';
+    els.histogramEmpty.textContent = 'No data';
     els.histogramEmpty.hidden = false;
-    renderEmptyHint(els.histogramEmpty);
     return;
   }
   els.histogramEmpty.hidden = true;

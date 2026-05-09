@@ -79,25 +79,6 @@ describe('virtualizer — click to expand a row', () => {
   });
 });
 
-describe('virtualizer — setGlobalExpanded', () => {
-  it('setGlobalExpanded(true) makes spacer height equal entries.length * expandedHeight', () => {
-    document.body.innerHTML = '';
-    const { viewport, spacer, rows } = makeHarness();
-    const virt = createVirtualizer({
-      viewport,
-      spacer,
-      rows,
-      rowHeight: ROW_HEIGHT,
-      expandedHeight: EXPANDED_HEIGHT,
-    });
-
-    virt.setEntries(makeEntries(50));
-    virt.setGlobalExpanded(true);
-
-    expect(spacer.style.height).toBe(`${50 * EXPANDED_HEIGHT}px`);
-  });
-});
-
 describe('virtualizer — setEntries([])', () => {
   it('makes rows.innerHTML empty and spacer height 0', () => {
     document.body.innerHTML = '';

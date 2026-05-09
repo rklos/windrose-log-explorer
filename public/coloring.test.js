@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { escapeHtml, colorize } from './coloring.js';
+import { escapeHtml, colorize, highlight } from './coloring.js';
 
 describe('escapeHtml', () => {
   it('escapes & to &amp;', () => {
@@ -115,5 +115,41 @@ describe('colorize — multiple patterns in one string', () => {
     expect(result).not.toMatch(/ \d+ /);
     // No nested spans
     expect(result).not.toMatch(/<span[^>]*><span/);
+  });
+});
+
+describe('colorize — search highlights', () => {
+  it('wraps highlighted ranges with <mark class="match">', () => {
+    const msg = 'hello world';
+    const result = colorize(msg, [[6, 11]]);
+    expect(result).toContain('<mark class="match">world</mark>');
+  });
+
+  it('places mark outside token span when a highlight spans an entire token', () => {
+    const msg = 'value is 42 done';
+    const result = colorize(msg, [[9, 11]]);
+    expect(result).toContain('<mark class="match"><span class="tok-number">42</span></mark>');
+  });
+
+  it('splits a token when only part of it is highlighted', () => {
+    const msg = 'value 12345';
+    const result = colorize(msg, [[6, 9]]);
+    // 123 is highlighted, 45 is not — both still inside their own number spans
+    expect(result).toContain('<mark class="match"><span class="tok-number">123</span></mark>');
+    expect(result).toContain('<span class="tok-number">45</span>');
+  });
+});
+
+describe('highlight', () => {
+  it('escapes text and returns it unchanged when no ranges given', () => {
+    expect(highlight('a < b', [])).toBe('a &lt; b');
+  });
+
+  it('wraps the matched range with <mark class="match">', () => {
+    expect(highlight('abcdef', [[2, 4]])).toBe('ab<mark class="match">cd</mark>ef');
+  });
+
+  it('merges overlapping ranges', () => {
+    expect(highlight('abcdef', [[1, 3], [2, 5]])).toBe('a<mark class="match">bcde</mark>f');
   });
 });
