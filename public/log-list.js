@@ -188,12 +188,16 @@ export function initLogList() {
 
   let searchTimer;
   els.searchInput.addEventListener('input', () => {
+    els.searchSpinner.hidden = false;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
       state.query = els.searchInput.value.trim();
       writeUrlState();
-      applyFilters();
-    }, 150);
+      requestAnimationFrame(() => {
+        applyFilters();
+        els.searchSpinner.hidden = true;
+      });
+    }, 250);
   });
 
   els.reloadBtn.addEventListener('click', () => {

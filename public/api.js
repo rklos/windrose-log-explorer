@@ -57,7 +57,7 @@ function showFetchError(message) {
   els.logEmpty.replaceChildren();
   els.logEmpty.append(`Failed: ${message} `);
   const retry = document.createElement('button');
-  retry.className = 'popover-btn';
+  retry.className = 'popover-btn no-flex';
   retry.textContent = 'Retry';
   retry.addEventListener('click', () => fetchEntries());
   els.logEmpty.append(retry);

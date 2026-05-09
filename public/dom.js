@@ -24,6 +24,7 @@ export const els = {
   autoRefreshBtn:   $('auto-refresh-toggle'),
 
   searchInput:      $('search-input'),
+  searchSpinner:    $('search-spinner'),
 
   histogramPane:    $('histogram-pane'),
   histogramSvg:     $('histogram-svg'),
