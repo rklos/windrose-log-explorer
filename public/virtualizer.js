@@ -10,7 +10,7 @@ export function createVirtualizer({
   // log line's expanded height is stable, so it survives setEntries() across refetches.
   const heightCache = new Map();
 
-  let renderRow = () => '';
+  let renderRow = () => document.createDocumentFragment();
   let onRowToggle = () => {};
 
   function rowH(entry) {
@@ -49,9 +49,21 @@ export function createVirtualizer({
     return lo;
   }
 
+  function buildRow(entry, top) {
+    const isExpanded = expanded.has(entry.i);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'log-row sev-' + entry.severity.toLowerCase() + (isExpanded ? ' expanded' : '');
+    wrapper.tabIndex = 0;
+    wrapper.style.top = top + 'px';
+    wrapper.style.height = rowH(entry) + 'px';
+    wrapper.dataset.idx = String(entry.i);
+    wrapper.append(renderRow(entry, isExpanded));
+    return wrapper;
+  }
+
   function render() {
     if (entries.length === 0) {
-      rows.innerHTML = '';
+      rows.replaceChildren();
       return;
     }
     const scrollTop = viewport.scrollTop;
@@ -59,14 +71,11 @@ export function createVirtualizer({
     const start = Math.max(0, findFirstVisible(scrollTop) - overscan);
     const end   = Math.min(entries.length, findFirstVisible(scrollTop + viewportH) + overscan);
 
-    let html = '';
+    const visible = [];
     for (let k = start; k < end; k++) {
-      const top = offsets[k];
-      const e = entries[k];
-      const isExpanded = expanded.has(e.i);
-      html += '<div class="log-row sev-' + e.severity.toLowerCase() + (isExpanded ? ' expanded' : '') + '" tabindex="0" style="top:' + top + 'px;height:' + rowH(e) + 'px" data-idx="' + e.i + '">' + renderRow(e, isExpanded) + '</div>';
+      visible.push(buildRow(entries[k], offsets[k]));
     }
-    rows.innerHTML = html;
+    rows.replaceChildren(...visible);
   }
 
   function recompute() {

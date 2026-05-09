@@ -1,15 +1,3 @@
-const HTML_ESCAPE = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;',
-};
-
-export function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, (c) => HTML_ESCAPE[c]);
-}
-
 const PATTERNS = [
   { re: /\[[0-9A-F]{16,}\]/g, cls: 'tok-guid' },
   { re: /https?:\/\/\S+/g, cls: 'tok-url' },
@@ -35,9 +23,7 @@ function mergeRanges(ranges) {
 function tokenRegions(message) {
   const regions = [];
   for (const { re, cls } of PATTERNS) {
-    re.lastIndex = 0;
-    let m;
-    while ((m = re.exec(message)) !== null) {
+    for (const m of message.matchAll(re)) {
       regions.push({ start: m.index, end: m.index + m[0].length, cls });
     }
   }
@@ -57,43 +43,61 @@ function tokenRegions(message) {
   return resolved;
 }
 
+function tokenSpan(cls, child) {
+  const span = document.createElement('span');
+  span.className = cls;
+  span.append(child);
+  return span;
+}
+
+function matchMark(child) {
+  const mark = document.createElement('mark');
+  mark.className = 'match';
+  mark.append(child);
+  return mark;
+}
+
 export function colorize(message, highlights = []) {
   const tokens = tokenRegions(message);
   const hl = mergeRanges(highlights);
 
-  // Cut the message at every token/highlight edge so each segment is uniformly
-  // wrapped (token span inside, mark outside) without producing nested spans.
+  // Cut the message at every token/highlight edge so each segment is wrapped
+  // uniformly (token span inside, mark outside) without nested spans.
   const N = message.length;
   const cuts = new Set([0, N]);
   for (const t of tokens) { cuts.add(t.start); cuts.add(t.end); }
   for (const [s, e] of hl) { cuts.add(s); cuts.add(e); }
   const sortedCuts = [...cuts].filter((b) => b >= 0 && b <= N).sort((a, b) => a - b);
 
-  let out = '';
+  const frag = document.createDocumentFragment();
   for (let k = 0; k < sortedCuts.length - 1; k++) {
     const s = sortedCuts[k];
     const e = sortedCuts[k + 1];
     if (s === e) continue;
     const tok = tokens.find((r) => r.start <= s && s < r.end);
     const isHl = hl.some(([hs, he]) => hs <= s && s < he);
-    let chunk = escapeHtml(message.slice(s, e));
-    if (tok) chunk = `<span class="${tok.cls}">${chunk}</span>`;
-    if (isHl) chunk = `<mark class="match">${chunk}</mark>`;
-    out += chunk;
+
+    let node = document.createTextNode(message.slice(s, e));
+    if (tok) node = tokenSpan(tok.cls, node);
+    if (isHl) node = matchMark(node);
+    frag.append(node);
   }
-  return out;
+  return frag;
 }
 
 export function highlight(text, highlights = []) {
   const merged = mergeRanges(highlights);
-  if (merged.length === 0) return escapeHtml(text);
-  let out = '';
+  const frag = document.createDocumentFragment();
+  if (merged.length === 0) {
+    frag.append(document.createTextNode(text));
+    return frag;
+  }
   let pos = 0;
   for (const [s, e] of merged) {
-    if (s > pos) out += escapeHtml(text.slice(pos, s));
-    out += `<mark class="match">${escapeHtml(text.slice(s, e))}</mark>`;
+    if (s > pos) frag.append(document.createTextNode(text.slice(pos, s)));
+    frag.append(matchMark(document.createTextNode(text.slice(s, e))));
     pos = e;
   }
-  if (pos < text.length) out += escapeHtml(text.slice(pos));
-  return out;
+  if (pos < text.length) frag.append(document.createTextNode(text.slice(pos)));
+  return frag;
 }

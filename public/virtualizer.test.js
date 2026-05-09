@@ -13,6 +13,10 @@ function makeHarness() {
   return { viewport, spacer, rows };
 }
 
+function resetBody() {
+  document.body.replaceChildren();
+}
+
 function makeEntries(count) {
   return Array.from({ length: count }, (_, i) => ({ i, severity: 'Display' }));
 }
@@ -25,7 +29,7 @@ describe('virtualizer — setEntries with 100 entries', () => {
   let virt;
 
   beforeEach(() => {
-    document.body.innerHTML = '';
+    resetBody();
     harness = makeHarness();
     virt = createVirtualizer({
       viewport: harness.viewport,
@@ -41,7 +45,7 @@ describe('virtualizer — setEntries with 100 entries', () => {
     expect(harness.spacer.style.height).toBe('2400px');
   });
 
-  it('rows.innerHTML contains only visible window plus overscan (14 to 22 rows)', () => {
+  it('rows contains only visible window plus overscan (14 to 22 rows)', () => {
     virt.setEntries(makeEntries(100));
     const rowEls = harness.rows.querySelectorAll('.log-row');
     // viewport 240px / 24px = 10 visible + 6 overscan before + 6 overscan after = up to 22
@@ -53,7 +57,7 @@ describe('virtualizer — setEntries with 100 entries', () => {
 
 describe('virtualizer — click to expand a row', () => {
   it('clicking a row increases spacer height by (expandedHeight - rowHeight)', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport,
@@ -68,7 +72,6 @@ describe('virtualizer — click to expand a row', () => {
     const initialHeight = parseInt(spacer.style.height, 10);
     expect(initialHeight).toBe(100 * ROW_HEIGHT);
 
-    // Click the first visible row
     const firstRow = rows.querySelector('.log-row');
     expect(firstRow).not.toBeNull();
 
@@ -80,8 +83,8 @@ describe('virtualizer — click to expand a row', () => {
 });
 
 describe('virtualizer — setEntries([])', () => {
-  it('makes rows.innerHTML empty and spacer height 0', () => {
-    document.body.innerHTML = '';
+  it('clears rows and sets spacer height to 0', () => {
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport,
@@ -94,14 +97,14 @@ describe('virtualizer — setEntries([])', () => {
     virt.setEntries(makeEntries(10));
     virt.setEntries([]);
 
-    expect(rows.innerHTML).toBe('');
+    expect(rows.children.length).toBe(0);
     expect(spacer.style.height).toBe('0px');
   });
 });
 
 describe('virtualizer — setRenderRow', () => {
   it("shows the renderRow function's output inside each row", () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport,
@@ -112,16 +115,21 @@ describe('virtualizer — setRenderRow', () => {
     });
 
     virt.setEntries(makeEntries(5));
-    virt.setRenderRow((entry) => `<span>entry-${entry.i}</span>`);
+    virt.setRenderRow((entry) => {
+      const span = document.createElement('span');
+      span.textContent = `entry-${entry.i}`;
+      return span;
+    });
 
-    expect(rows.innerHTML).toContain('<span>entry-0</span>');
-    expect(rows.innerHTML).toContain('<span>entry-4</span>');
+    const labels = Array.from(rows.querySelectorAll('.log-row > span')).map((s) => s.textContent);
+    expect(labels).toContain('entry-0');
+    expect(labels).toContain('entry-4');
   });
 });
 
 describe('virtualizer — variable expanded heights via measureExpandedRow', () => {
   it('uses measured height instead of the static expandedHeight when row is expanded', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const measured = new Map([[0, 200], [1, 50]]);
     const virt = createVirtualizer({
@@ -139,7 +147,7 @@ describe('virtualizer — variable expanded heights via measureExpandedRow', () 
   });
 
   it('cached measured height survives setEntries(next, {keepScroll: true})', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     let calls = 0;
     const virt = createVirtualizer({
@@ -159,7 +167,7 @@ describe('virtualizer — variable expanded heights via measureExpandedRow', () 
   });
 
   it('falls back to expandedHeight when measureExpandedRow returns 0/NaN/negative', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport, spacer, rows,
@@ -177,7 +185,7 @@ describe('virtualizer — variable expanded heights via measureExpandedRow', () 
 
 describe('virtualizer — setEntries scroll behavior', () => {
   it('default setEntries(next) resets scrollTop to 0', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport, spacer, rows,
@@ -192,7 +200,7 @@ describe('virtualizer — setEntries scroll behavior', () => {
   });
 
   it('setEntries(next, {keepScroll: true}) preserves scrollTop', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport, spacer, rows,
@@ -207,7 +215,7 @@ describe('virtualizer — setEntries scroll behavior', () => {
   });
 
   it('setEntries(next, {keepScroll: true}) preserves expanded set', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport, spacer, rows,
@@ -224,7 +232,7 @@ describe('virtualizer — setEntries scroll behavior', () => {
   });
 
   it('default setEntries(next) clears expanded set', () => {
-    document.body.innerHTML = '';
+    resetBody();
     const { viewport, spacer, rows } = makeHarness();
     const virt = createVirtualizer({
       viewport, spacer, rows,
