@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Windrose Log Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <header class="panel-head">
+        <div class="brand">
+          <span class="compass" aria-hidden="true">✦</span>
+          <h1>WINDROSE <em>LOG EXPLORER</em></h1>
+        </div>
+        <div class="file-meta" id="file-meta"></div>
+      </header>
+
+      <section class="stats" id="stats" aria-live="polite"></section>
+
+      <section class="toolbar">
+        <div class="toolbar-row">
+          <label class="field">
+            <span class="field-label">FROM</span>
+            <input type="datetime-local" id="from-input" step="1" />
+          </label>
+          <label class="field">
+            <span class="field-label">TO</span>
+            <input type="datetime-local" id="to-input" step="1" />
+          </label>
+          <button type="button" class="btn-pill" id="reload-btn">Reload</button>
+        </div>
+        <div class="toolbar-row">
+          <div class="chips" id="severity-chips" role="group" aria-label="Severity filter"></div>
+          <label class="search-field">
+            <span class="field-label sr-only">Search</span>
+            <input type="search" id="search-input" placeholder="Search messages..." autocomplete="off" />
+          </label>
+          <label class="check">
+            <input type="checkbox" id="full-toggle" />
+            <span class="check-box" aria-hidden="true"></span>
+            <span class="check-label">Show full lines</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="log-pane" id="log-pane">
+        <div class="log-empty" id="log-empty">Loading...</div>
+        <div class="log-viewport" id="log-viewport" hidden>
+          <div class="log-spacer" id="log-spacer"></div>
+          <div class="log-rows" id="log-rows"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

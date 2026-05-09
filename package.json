@@ -1,0 +1,33 @@
+{
+  "name": "windrose-log-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rklos/windrose-log-explorer.git"
+  },
+  "author": "Radosław Kłos <radoslaw@klos.dev>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rklos/windrose-log-explorer/issues"
+  },
+  "homepage": "https://github.com/rklos/windrose-log-explorer#readme",
+  "description": "Browser-based explorer for Unreal Engine log files.",
+  "devDependencies": {
+    "jsdom": "29.1.1",
+    "vitest": "4.1.5"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "fuse.js": "7.3.0"
+  }
+}
