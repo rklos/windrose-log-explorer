@@ -18,6 +18,22 @@ let fuseInstance = null;
 let fuseEntriesRef = null;
 let fuseSevKey = null;
 
+function isVisuallyEmpty(entry) {
+  return !entry.hasOwnTs && !entry.category && entry.compactMessage === '';
+}
+
+function collapseEmptyRuns(entries) {
+  const out = [];
+  let prevEmpty = false;
+  for (const e of entries) {
+    const empty = isVisuallyEmpty(e);
+    if (empty && prevEmpty) continue;
+    out.push(e);
+    prevEmpty = empty;
+  }
+  return out;
+}
+
 function buildSevSpan(entry) {
   const sev = document.createElement('span');
   sev.className = 'sev';
@@ -156,6 +172,8 @@ export function applyFilters({ keepScroll = false } = {}) {
     state.queryMatches = null;
     state.filtered = candidate;
   }
+
+  state.filtered = collapseEmptyRuns(state.filtered);
 
   if (state.filtered.length === 0) {
     els.logViewport.hidden = true;
