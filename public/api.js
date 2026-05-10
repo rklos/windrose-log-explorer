@@ -1,12 +1,25 @@
 import { state } from './state.js';
 import { els } from './dom.js';
 import { resolveSelection } from '/time-range.js';
+import { STATIC_MODE, STATIC_DATA_BASE } from './config.js';
 
 let onEntriesUpdated = () => {};
 export function setOnEntriesUpdated(fn) { onEntriesUpdated = fn ?? (() => {}); }
 
+let staticEntriesPromise = null;
+function loadStaticEntries() {
+  if (!staticEntriesPromise) {
+    staticEntriesPromise = fetch(`${STATIC_DATA_BASE}/entries.json`).then((r) => {
+      if (!r.ok) throw new Error(`entries ${r.status}`);
+      return r.json();
+    });
+  }
+  return staticEntriesPromise;
+}
+
 export async function fetchMeta() {
-  const r = await fetch('/api/log/meta');
+  const url = STATIC_MODE ? `${STATIC_DATA_BASE}/meta.json` : '/api/log/meta';
+  const r = await fetch(url);
   if (!r.ok) throw new Error(`meta ${r.status}`);
   state.meta = await r.json();
   els.absFileMin.textContent = state.meta.min;
@@ -27,6 +40,22 @@ export async function fetchEntries({ keepScroll = false } = {}) {
   try {
     const win = resolveActiveWindow();
     if (!win) return;
+
+    if (STATIC_MODE) {
+      let all;
+      try {
+        all = await loadStaticEntries();
+      } catch (err) {
+        showFetchError(err.message);
+        return;
+      }
+      state.entries = all.entries.filter(
+        (e) => e.groupTs >= win.fromMs && e.groupTs <= win.toMs,
+      );
+      onEntriesUpdated({ keepScroll });
+      return;
+    }
+
     const url = new URL('/api/log', location.origin);
     url.searchParams.set('from', new Date(win.fromMs).toISOString());
     url.searchParams.set('to',   new Date(win.toMs).toISOString());

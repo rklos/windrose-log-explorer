@@ -45,6 +45,17 @@ npm test         # vitest, 129 tests across 6 files
 npm start        # boot the server (with LOG_FILE)
 ```
 
+## Static build (GitHub Pages)
+
+The Express backend can't run on Pages, so `scripts/build-static.mjs` parses a single log up-front and emits a fully static `dist/` that the frontend reads from `data/meta.json` + `data/entries.json` (time filtering moves client-side).
+
+```sh
+LOG_FILE=logs/your-server.log node scripts/build-static.mjs
+# then serve dist/ with any static server
+```
+
+`.github/workflows/deploy-pages.yml` does this on every push to `main`. Set the repo variable `LOG_FILE` (Settings → Secrets and variables → Actions → Variables) to the path of a log committed to the repo; default is `logs/demo.txt`. **The baked log is published publicly — scrub passwords, account IDs, and invite codes before committing it.**
+
 ## Layout
 
 ```
