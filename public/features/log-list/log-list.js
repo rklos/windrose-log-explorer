@@ -1,14 +1,14 @@
-import Fuse from '/vendor/fuse.esm.min.js';
-import { state, SEV_BADGE } from './state.js';
-import { els } from './dom.js';
-import { writeUrlState } from './url-state.js';
-import { fetchEntries } from './api.js';
-import { renderSeverityTrigger } from './severity-filter.js';
-import { renderTimeTrigger } from './time-picker.js';
-import { renderHistogram } from './histogram-view.js';
-import { colorize, highlight } from '/coloring.js';
-import { createVirtualizer } from '/virtualizer.js';
-import { severityKey } from '/histogram.js';
+import Fuse from '../../vendor/fuse.esm.min.js';
+import { state, SEV_BADGE } from '../../common/state.js';
+import { els } from '../../common/dom.js';
+import { writeUrlState } from '../../common/url-state.js';
+import { fetchEntries } from '../../common/api.js';
+import { renderSeverityTrigger } from '../severity/severity-filter.js';
+import { renderTimeTrigger } from '../time/time-picker.js';
+import { renderHistogram } from '../histogram/histogram-view.js';
+import { colorize, highlight } from '../../common/coloring.js';
+import { createVirtualizer } from '../../common/virtualizer.js';
+import { severityKey } from '../histogram/histogram.js';
 
 let virtualizer = null;
 

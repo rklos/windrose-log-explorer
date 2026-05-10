@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { selectionFromSearchParams, applySelectionToSearchParams } from '/time-range.js';
+import { selectionFromSearchParams, applySelectionToSearchParams } from '../features/time/time-range.js';
 
 export function readUrlState() {
   const params = new URLSearchParams(location.search);

@@ -1,4 +1,4 @@
-import { DEFAULT_PRESET_KEY } from '/time-range.js';
+import { DEFAULT_PRESET_KEY } from '../features/time/time-range.js';
 
 export const SEVERITY_BUCKETS = [
   { key: 'verbose',  label: 'Verbose',  match: ['Verbose', 'VeryVerbose'], dotVar: '--sev-verbose'  },

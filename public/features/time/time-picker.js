@@ -1,14 +1,14 @@
-import { state } from './state.js';
-import { els } from './dom.js';
-import { writeUrlState } from './url-state.js';
-import { createDropdown } from './dropdown.js';
-import { fetchEntries } from './api.js';
+import { state } from '../../common/state.js';
+import { els } from '../../common/dom.js';
+import { writeUrlState } from '../../common/url-state.js';
+import { createDropdown } from '../../common/dropdown.js';
+import { fetchEntries } from '../../common/api.js';
 import {
   PRESETS,
   formatTriggerLabel,
   isoToDatetimeLocalValue,
   datetimeLocalValueToIso,
-} from '/time-range.js';
+} from './time-range.js';
 
 export function renderTimeTrigger() {
   els.timeLabel.textContent = formatTriggerLabel(state.selection);

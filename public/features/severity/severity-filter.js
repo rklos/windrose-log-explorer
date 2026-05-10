@@ -1,8 +1,8 @@
-import { state, SEVERITY_BUCKETS } from './state.js';
-import { els } from './dom.js';
-import { writeUrlState } from './url-state.js';
-import { createDropdown } from './dropdown.js';
-import { severityKey } from '/histogram.js';
+import { state, SEVERITY_BUCKETS } from '../../common/state.js';
+import { els } from '../../common/dom.js';
+import { writeUrlState } from '../../common/url-state.js';
+import { createDropdown } from '../../common/dropdown.js';
+import { severityKey } from '../histogram/histogram.js';
 
 let onChange = () => {};
 

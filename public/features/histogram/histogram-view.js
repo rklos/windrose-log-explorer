@@ -1,15 +1,15 @@
-import { state } from './state.js';
-import { els } from './dom.js';
-import { writeUrlState } from './url-state.js';
-import { fetchEntries } from './api.js';
-import { renderTimeTrigger } from './time-picker.js';
+import { state } from '../../common/state.js';
+import { els } from '../../common/dom.js';
+import { writeUrlState } from '../../common/url-state.js';
+import { fetchEntries } from '../../common/api.js';
+import { renderTimeTrigger } from '../time/time-picker.js';
 import {
   chooseBucketMs,
   bucketEntries,
   pickTickFormat,
   formatTickLabel,
   chooseTickPositions,
-} from '/histogram.js';
+} from './histogram.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const HISTOGRAM_HEIGHT = 96;

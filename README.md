@@ -62,28 +62,36 @@ LOG_FILE=logs/your-server.log node scripts/build-static.mjs
 ## Layout
 
 ```
-public/                  # static frontend (mounted at /)
+public/                       # static frontend (mounted at /)
   index.html
   style.css
-  app.js                 # bootstrap — wires modules together
-  api.js                 # /api/log + /api/log/meta clients, fetch state
-  state.js               # shared in-memory state
-  dom.js                 # cached element references
-  url-state.js           # query-string read/write
-  dropdown.js            # popover open/close helper
-  severity-filter.js     # severity multiselect popover + counts
-  time-picker.js         # time-range popover (presets + absolute)
-  time-range.js          # preset table + selection ↔ URL helpers
-  log-list.js            # search, severity filter, virtualized rows
-  virtualizer.js         # variable-height windowed list
-  coloring.js            # token coloring + match highlighting
-  histogram.js           # bucketing + severity rollup (pure)
-  histogram-view.js      # SVG rendering, hover, drag-to-brush
-  auto-refresh.js        # 5s polling toggle with smart pause
+  app.js                      # bootstrap — wires modules together
+  config.js                   # static-mode flag (overwritten by build)
+  common/                     # shared infrastructure
+    state.js                  # shared in-memory state
+    dom.js                    # cached element references
+    url-state.js              # query-string read/write
+    api.js                    # /api/log + /api/log/meta clients
+    dropdown.js               # popover open/close helper
+    virtualizer.js            # variable-height windowed list
+    coloring.js               # token coloring + match highlighting
+  features/
+    severity/
+      severity-filter.js      # severity multiselect popover + counts
+    time/
+      time-picker.js          # time-range popover (presets + absolute)
+      time-range.js           # preset table + selection ↔ URL helpers
+    histogram/
+      histogram.js            # bucketing + severity rollup (pure)
+      histogram-view.js       # SVG rendering, hover, drag-to-brush
+    log-list/
+      log-list.js              # search, severity filter, virtualized rows
+    auto-refresh/
+      auto-refresh.js         # 5s polling toggle with smart pause
 src/
-  server.js              # Express app + /api endpoints
-  parser.js              # streaming UE log parser + in-memory cache
-logs/                    # log files (point `LOG_FILE` here)
+  server.js                   # Express app + /api endpoints
+  parser.js                   # streaming UE log parser + in-memory cache
+logs/                         # log files (point `LOG_FILE` here)
 ```
 
 ## License

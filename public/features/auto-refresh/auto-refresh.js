@@ -1,7 +1,7 @@
-import { state } from './state.js';
-import { els } from './dom.js';
-import { writeUrlState } from './url-state.js';
-import { fetchEntries } from './api.js';
+import { state } from '../../common/state.js';
+import { els } from '../../common/dom.js';
+import { writeUrlState } from '../../common/url-state.js';
+import { fetchEntries } from '../../common/api.js';
 
 const AUTO_REFRESH_INTERVAL_MS = 5000;
 let autoRefreshTimer = null;

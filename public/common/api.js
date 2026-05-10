@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { els } from './dom.js';
-import { resolveSelection } from '/time-range.js';
-import { STATIC_MODE, STATIC_DATA_BASE } from './config.js';
+import { resolveSelection } from '../features/time/time-range.js';
+import { STATIC_MODE, STATIC_DATA_BASE } from '../config.js';
 
 let onEntriesUpdated = () => {};
 export function setOnEntriesUpdated(fn) { onEntriesUpdated = fn ?? (() => {}); }
