@@ -2,6 +2,9 @@
 
 A small Express + vanilla-JS app for exploring Unreal Engine `.log` files in the browser. Server-side time-range filtering, a draggable severity histogram, severity multiselect, Fuse.js fuzzy search with debounce + spinner, optional 5s auto-refresh, and per-row "show raw line" expansion. State (time range, severities, search, auto-refresh) is reflected in the URL. Styled with a dark walnut / amber palette.
 
+## Demo
+[https://rklos.github.io/windrose-log-explorer](https://rklos.github.io/windrose-log-explorer/?from=2026-05-08T23%3A35%3A00.667Z&to=2026-05-09T08%3A06%3A45.910Z&sev=display%2Cwarning%2Cerror)
+
 ## Requirements
 
 - Node.js >= 22
