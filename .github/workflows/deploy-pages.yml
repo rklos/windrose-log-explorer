@@ -27,7 +27,7 @@ jobs:
       - name: Build static site
         run: node scripts/build-static.mjs
         env:
-          LOG_FILE: ${{ vars.LOG_FILE || 'logs/demo.txt' }}
+          LOG_FILE: ${{ vars.LOG_FILE || 'logs/logs.txt' }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -54,7 +54,7 @@ LOG_FILE=logs/your-server.log node scripts/build-static.mjs
 # then serve dist/ with any static server
 ```
 
-`.github/workflows/deploy-pages.yml` does this on every push to `main`. Set the repo variable `LOG_FILE` (Settings → Secrets and variables → Actions → Variables) to the path of a log committed to the repo; default is `logs/demo.txt`. **The baked log is published publicly — scrub passwords, account IDs, and invite codes before committing it.**
+`.github/workflows/deploy-pages.yml` does this on every push to `main`. Set the repo variable `LOG_FILE` (Settings → Secrets and variables → Actions → Variables) to the path of a log committed to the repo; default is `logs/logs.txt`. **The baked log is published publicly — scrub passwords, account IDs, and invite codes before committing it.**
 
 ## Layout
 
