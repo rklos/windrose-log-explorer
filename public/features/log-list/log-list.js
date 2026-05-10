@@ -149,7 +149,7 @@ export function applyFilters({ keepScroll = false } = {}) {
     if (!fuseInstance || fuseEntriesRef !== state.entries || fuseSevKey !== sevKey) {
       fuseInstance = new Fuse(candidate, {
         keys: ['compactMessage', 'category', 'fullText'],
-        threshold: 0.35,
+        threshold: 0.1,
         ignoreLocation: true,
         includeMatches: true,
         minMatchCharLength: 2,
