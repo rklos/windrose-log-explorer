@@ -149,8 +149,24 @@ describe('tokenizeLine — category regex', () => {
     // "Display" alone should not be extracted as a category
     const line = '[2026.05.05-15.01.16:191][  1]Display something without category syntax';
     const entry = tokenizeLine(line, 0);
-    // The CATEGORY_SEVERITY_RE requires "Category: Severity:" pattern
     expect(entry.category).toBeNull();
+  });
+
+  it('extracts category when severity is omitted (implicit Display)', () => {
+    // UE writes `Category: message` for default-level lines.
+    const line = '[2026.05.05-15.01.16:191][  1]R5LogMeleeAbility: [5717807] UR5MeleeAbility::RemoveEventGEs Auth: true';
+    const entry = tokenizeLine(line, 0);
+    expect(entry.category).toBe('R5LogMeleeAbility');
+    expect(entry.severity).toBe('Display');
+    expect(entry.compactMessage.startsWith('UR5MeleeAbility')).toBe(true);
+  });
+
+  it('extracts category when severity is omitted and the column is space-padded', () => {
+    const line = '[2026.05.05-15.03.23:227][  0]R5LogNet:                     [000000] R5NetServer::R5NetServer Create R5NetServer';
+    const entry = tokenizeLine(line, 0);
+    expect(entry.category).toBe('R5LogNet');
+    expect(entry.severity).toBe('Display');
+    expect(entry.compactMessage.startsWith('R5NetServer::R5NetServer')).toBe(true);
   });
 });
 

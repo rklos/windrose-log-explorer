@@ -5,8 +5,10 @@ import { createInterface } from 'node:readline';
 const TIMESTAMP_LINE_RE =
   /^\[(?<date>\d{4}\.\d{2}\.\d{2})-(?<time>\d{2}\.\d{2}\.\d{2}):(?<ms>\d{3})\]\[\s*(?<frame>\d+)\](?<rest>.*)$/;
 
+// Severity is optional — UE writes `Category: message` (implicit Display) for
+// the default level and `Category: Severity: message` for everything else.
 const CATEGORY_SEVERITY_RE =
-  /^(?<category>[A-Za-z][A-Za-z0-9_]*): (?<severity>Verbose|VeryVerbose|Display|Log|Warning|Error|Fatal):\s*(?<message>.*)$/;
+  /^(?<category>[A-Za-z][A-Za-z0-9_]*):\s+(?:(?<severity>Verbose|VeryVerbose|Display|Log|Warning|Error|Fatal):\s*)?(?<message>.*)$/;
 
 const SOURCE_PATH_TAIL_RE = /\s+\[[A-Za-z]:\\[^\]]+:\d+\]\s*$/;
 const SEQ_ID_HEAD_RE = /^\[\s*-?\d+(?::\d+)?\]\s+/;
